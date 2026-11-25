@@ -1,4 +1,8 @@
 export type CameraFacing='environment'|'user';
-export async function openCamera(facing:CameraFacing):Promise<MediaStream>{if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia)throw Error('Camera requires HTTPS or localhost and a supported browser.');return navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:30}}});}
+export type CameraQuality='live'|'detail';
+export async function openCamera(facing:CameraFacing,quality:CameraQuality='live'):Promise<MediaStream>{
+ if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia)throw Error('Camera requires HTTPS or localhost and a supported browser.');
+ return navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:quality==='detail'?1920:1280},height:{ideal:quality==='detail'?1080:720},frameRate:{ideal:30,max:30}}});
+}
 export function stopCamera(stream:MediaStream|null){stream?.getTracks().forEach(t=>t.stop());}
 export function cameraError(error:unknown){if(error instanceof DOMException){if(error.name==='NotAllowedError')return 'Camera permission denied. Allow camera access in browser settings and retry.';if(error.name==='NotFoundError')return 'No camera found.';if(error.name==='NotReadableError')return 'Camera is busy or unavailable. Close other camera apps and retry.';}return error instanceof Error?error.message:String(error);}

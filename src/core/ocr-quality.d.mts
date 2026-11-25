@@ -1,0 +1,11 @@
+export type OCRProfile='document'|'digits';
+export type OCRData={text:string;confidence:number};
+export type OCRReview={text:string;confidence:number;plausible:boolean;valid:boolean;warning?:string};
+export const OCR_REGIONS:Readonly<Record<OCRProfile,Readonly<{x:number;y:number;w:number;h:number}>>>;
+export const OCR_MIN_CONFIDENCE:number;
+export function cropRect(width:number,height:number,profile:OCRProfile):{x:number;y:number;width:number;height:number};
+export function captureSize(width:number,height:number,profile:OCRProfile):{width:number;height:number};
+export function assessOCR(data:OCRData,profile:OCRProfile):OCRReview;
+export function improveContrast(data:Uint8ClampedArray):boolean;
+export function recognizeWithReview(profile:OCRProfile,original:()=>Promise<OCRData>,enhanced:()=>Promise<OCRData|null>):Promise<OCRReview>;
+export function characterErrorRate(expected:string,actual:string):number;

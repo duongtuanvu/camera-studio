@@ -1,4 +1,4 @@
-# Camera Studio v0.2.0
+# Camera Studio v0.2.1
 
 Mobile-first, local-first camera toolkit. Production: https://camera.linhsumi.io.vn
 
@@ -37,3 +37,8 @@ If a previous release is cached, open a tool, choose Settings > XÃ³a cache & táº
  
 ## Testing
 Run npm test for pixels and line tracking, npm run build for TypeScript and static file checks. Physical Android/iOS, browser fake-camera end-to-end testing, thermal and memory benchmarks, dependency lockfile, accuracy evaluation and WebGPU profiling are still required before production readiness.
+
+## v0.2.1 OCR regression fix
+Select Document for printed text or Digits for a single odometer/meter number. The overlay follows the intrinsic camera frame (including letterboxing). Only that region is captured; high-detail camera resolution is requested for OCR. The engine uses a digit whitelist and single-line segmentation for numeric mode. Low-confidence, malformed and conflicting numeric results are flagged and cannot be saved; the cropped image is available for visual comparison. The confidence score is an estimate, not measured accuracy. Images with glare, tiny digits, curved text or blur can still be misread. No numeric or document accuracy guarantee is made.
+
+`npm run build` now gates Cloudflare deployment on Node regression tests and coverage thresholds for four selected core files, then runs the real Tesseract.js WASM smoke tests against two synthetic clean PNG fixtures using local traineddata. The fixtures are not a representative field benchmark. Browser/device tests and full-app coverage are still pending.
