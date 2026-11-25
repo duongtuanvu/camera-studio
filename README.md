@@ -1,4 +1,4 @@
-# Camera Studio v0.3.1
+# Camera Studio v0.3.2
 
 Mobile-first, local-first camera toolkit. Production: https://camera.linhsumi.io.vn
 
@@ -43,8 +43,11 @@ Select Document for printed text or Digits for a single odometer/meter number. T
 
 `npm run build` now gates Cloudflare deployment on Node regression tests and coverage thresholds for four selected core files, then runs the real Tesseract.js WASM smoke tests against two synthetic clean PNG fixtures using local traineddata. The fixtures are not a representative field benchmark. Browser/device tests and full-app coverage are still pending.
 
-## v0.3.0 upstream engines
+## v0.3.0 upstream engines (historical; superseded by v0.3.2)
 See [UPSTREAM.md](UPSTREAM.md). OCR Auto tries the official PaddleOCR.js PP-OCRv6 Tiny worker, with a Tesseract initialization fallback and explicit engine selector. PaddleOCR remains a beta until browser and mobile tests pass. QR and linear barcode scanning use ZXing-C++ WASM with local versioned binary and compatibility fallback. Build includes three real barcode fixture checks and a blank frame check. The separate browser QA workflow runs PaddleOCR adapter smoke tests; Cloudflare direct Git deployment does not wait for that job. To run locally after installing dependencies and building: `npx playwright install chromium`, then `npm run test:browser`.
 
-## v0.3.1 document and energy label OCR
+## v0.3.1 document and energy label OCR (PaddleOCR fallback superseded)
 Auto now prefers Tesseract with grayscale, bounded upscale and block/sparse-text passes. PaddleOCR is optional and may be used if automatic document engine initialization fails. Review and confirm every OCR result before save/copy. See [QA regression notes](QA-OCR.md). Existing build gate now includes a synthetic colored energy label smoke test.
+
+## v0.3.2 Cloudflare deployment hotfix
+The v0.3.1 build passed 67 unit tests, OCR and barcode WASM smoke tests, TypeScript and Vite, but failed the static asset size gate: PaddleOCR's transitive ONNX Runtime JSEP WASM was 29,520.97 kB (above Cloudflare's 25 MiB limit). The experimental PaddleOCR dependency, adapter and UI selection have been removed from the production app. Tesseract's multi-pass OCR, numeric mode, manual review, all existing test/coverage gates and the 25 MiB limit remain. The old Paddle adapter is available in Git history (commit c3f7173); do not reintroduce until its runtime is packaged within hosting constraints and tested in browsers. Browser smoke test now exercises the active OCR adapter. Local Node 22.16.0 regression run on the exact 12 core/test Git blobs: 67/67 pass; line/function coverage 100%, branch coverage 96.35%. This hotfix still requires a successful Cloudflare build and physical-device OCR verification. No claim of fixing the separate stylized-digit recognition error.

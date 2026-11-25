@@ -1,6 +1,6 @@
 {
   "name": "camera-studio",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -27,8 +27,7 @@
     "@tensorflow-models/coco-ssd": "^2.2.3",
     "@mediapipe/tasks-vision": "0.10.22-rc.20250304",
     "onnxruntime-web": "1.20.1",
-    "zxing-wasm": "3.1.7",
-    "@paddleocr/paddleocr-js": "0.4.2"
+    "zxing-wasm": "3.1.7"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

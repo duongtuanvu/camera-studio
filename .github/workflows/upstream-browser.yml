@@ -1,4 +1,4 @@
-name: Upstream browser QA
+name: OCR browser QA
 on:
   push:
     branches: [main]
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 jobs:
-  paddle-browser:
+  ocr-browser:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
