@@ -1,0 +1,4 @@
+const CACHE='camera-studio-shell-v1';
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(['./','./manifest.webmanifest','./icon.svg']))));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('camera-studio-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
+self.addEventListener('fetch',event=>{const r=event.request; if(r.method!=='GET'||new URL(r.url).origin!==self.location.origin||!new URL(r.url).pathname.startsWith(new URL(self.registration.scope).pathname))return; event.respondWith((async()=>{try{const response=await fetch(r);if(response.ok&&response.type==='basic'){const cache=await caches.open(CACHE);await cache.put(r,response.clone());}return response;}catch{const saved=await caches.match(r);return saved||(r.mode==='navigate'?await caches.match('./'):undefined)||Response.error();}})());});

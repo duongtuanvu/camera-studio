@@ -1,0 +1,1 @@
+export function colorAtCenter(data:Uint8ClampedArray,w:number,h:number):string;export function motionScore(data:Uint8ClampedArray,previous?:Uint8Array):{gray:Uint8Array;score:number};
