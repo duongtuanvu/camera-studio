@@ -1,30 +1,39 @@
-# Camera Studio
+# Camera Studio v0.2.0
 
-A mobile-first, local-first camera toolkit. Open the site, select a module, grant camera permission, and use the live preview.
+Mobile-first, local-first camera toolkit. Production: https://camera.linhsumi.io.vn
 
 ## Run
+Node 22 recommended.
 ```sh
 npm install
 npm test
 npm run dev
 npm run build
 ```
-Node 22 recommended. Camera requires HTTPS or localhost; accessing a development machine by plain HTTP LAN IP does not normally allow camera access.
+Use HTTPS or localhost for camera permission.
 
-## Tools
-- Object detection and visible-object counting: TensorFlow.js COCO-SSD (lite MobileNet), WebGL with CPU fallback. No tracking or industrial SKU model yet.
-- QR and barcode: ZXing.
-- OCR: Tesseract.js, English, capture on demand.
-- Color and motion: pixel processing in a Web Worker when supported, small-canvas fallback.
-- Pose: MediaPipe Pose Landmarker (lite), landmarks only.
+## What's new
+- Camera and tool lifetimes are independent. Failed model import, inference or worker errors are displayed with stage and message; retry the tool without stopping the preview. Separate camera retry, cache reset, timeouts, and visibility handling.
+- Object detection: ONNX SSD MobileNet V1 INT8 in a dedicated classic worker (WASM; attempt WebGPU+WASM on capable non-iOS devices). TFJS COCO-SSD compatibility fallback. WebGPU fallback is not guaranteed to accelerate quantized kernels.
+- Object counter: class-aware lightweight centroid/velocity association, configurable horizontal counting line and direction, per-track counting, hysteresis, stale-track expiration and reset. Not ByteTrack; occlusion/fast movement may still cause missed counts or ID switches. Industrial objects need a trained model and calibrated testing.
+- QR/barcode: native BarcodeDetector when available, ZXing fallback; ordinary no-code frames do not stop the tool.
+- OCR English/Vietnamese/both, local Tesseract worker, core and traineddata.
+- Color/motion: dedicated worker when supported, small Canvas fallback.
+- Pose: MediaPipe lite CPU, local WASM assets; still runs synchronous detection on main thread.
+- User-initiated result history with IndexedDB, cap 500 entries, CSV (spreadsheet formula escaping) and JSON export, explicit deletion.
+- requestVideoFrameCallback with RAF fallback, one inference in flight, adaptive interval and on-device latency/FPS display.
+- Scoped, versioned runtime asset caching; HTML is not cached by service worker. Offline cold start is not supported.
 
-Model assets may be downloaded from third-party CDNs at first use. Camera frames are not uploaded by this app. Models run locally; offline shell caching is best-effort, not complete offline model support.
+## Assets
+The build copies pinned npm runtime binaries and traineddata into public/runtime-v2 (generated, ignored in Git). It attempts to fetch SSD/Pose models with SHA-256 verification; if unavailable, the build logs a warning and the runtime tries verified upstream sources. No camera frames are sent to those sources. Runtime assets are versioned; bump the directory/cache version when updating packages. Build checks enforce Cloudflare's 25 MiB per-file limit.
 
-## Architecture
-React + TypeScript + Vite, native video, canvas overlay, lazy module imports, one inference in flight, adaptive processing intervals, camera cleanup and cancellation. TFJS and MediaPipe inference still use main-thread APIs; UI 60 FPS is not guaranteed. Worker migration and WebGPU/ONNX are future work.
+Models: [ONNX SSD MobileNet INT8](https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_12-int8), [MediaPipe Pose Landmarker](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker). Verify model licensing, accuracy and device compatibility before commercial deployment.
 
-## Deploy
-In GitHub repository Settings > Pages, select GitHub Actions as source. The CI and Pages workflow installs dependencies, runs unit tests, builds and deploys. The expected project site is https://duongtuanvu.github.io/camera-studio/ after Pages is enabled and deployment succeeds. Alternatively deploy dist/ to an HTTPS static host.
+## Cloudflare deployment
+Keep the existing Cloudflare Workers Git integration, branch main, build command npm run build, deploy command npx wrangler deploy, output dist/. Do not rename the existing Worker or replace custom-domain routing. Build logs contain asset download warnings and static deployment checks. The site requires HTTPS. GitHub Actions is separate from Cloudflare deployment.
 
-## Validation
-Pixel algorithm unit tests are included. Real-device Android/iOS camera tests, long-running memory/thermal benchmarks, dependency lockfile and model licensing review are required before production use.
+## Troubleshooting
+If a previous release is cached, open a tool, choose Settings > Xóa cache & tải lại. If the tool fails, copy the exact stage/error shown; the camera preview remains live. Try Color Picker or QR before AI tools to isolate camera from model issues. If the camera itself fails, allow permission and close other camera apps.
+ 
+## Testing
+Run npm test for pixels and line tracking, npm run build for TypeScript and static file checks. Physical Android/iOS, browser fake-camera end-to-end testing, thermal and memory benchmarks, dependency lockfile, accuracy evaluation and WebGPU profiling are still required before production readiness.
