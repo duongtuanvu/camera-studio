@@ -3,3 +3,5 @@ dist/
 .env*
 .DS_Store
 public/runtime-v2/
+test-results/
+playwright-report/

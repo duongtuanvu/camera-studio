@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {matchesBarcodeFormat,selectBarcodeResult,paddleData} from '../src/core/upstream-results.mjs';
+test('format names normalize across native and upstream readers',()=>{for(const f of ['qr_code','QRCode','QR_CODE','MicroQRCode','rMQRCode'])assert.equal(matchesBarcodeFormat(f,'qr'),true);for(const f of ['EAN_13','EAN13','UPC_A','Code128','ITF','Codabar'])assert.equal(matchesBarcodeFormat(f,'barcode'),true);});
+test('QR and linear modules do not cross-accept formats',()=>{assert.equal(matchesBarcodeFormat('QRCode','barcode'),false);assert.equal(matchesBarcodeFormat('EAN13','qr'),false);assert.equal(matchesBarcodeFormat('PDF417','barcode'),false);assert.equal(matchesBarcodeFormat(null,'qr'),false);assert.equal(matchesBarcodeFormat('QR_CODE','unknown'),false);});
+test('first valid matching result preserves leading zeros',()=>assert.deepEqual(selectBarcodeResult([{format:'QRCode',text:'ignored'},{format:'EAN13',text:'0012345678905'}],'barcode','ZXing-C++ WASM'),{text:'0012345678905',valid:true,backend:'ZXing-C++ WASM'}));
+test('native rawValue remains unchanged',()=>assert.deepEqual(selectBarcodeResult([{format:'qr_code',rawValue:' https://example.com ' }],'qr','Native'),{text:' https://example.com ',valid:true,backend:'Native'}));
+test('empty, malformed and invalid barcode results return null',()=>{for(const items of [null,[],[null],[{format:'EAN13',text:''}],[{format:'EAN13',text:123}],[{format:'EAN13',text:'123',isValid:false}],[{format:'EAN13',text:'123',error:'Checksum'}]])assert.equal(selectBarcodeResult(items,'barcode','test'),null);});
+test('skips invalid candidate but accepts later valid barcode',()=>assert.equal(selectBarcodeResult([{format:'Code128',text:'wrong',isValid:false},{format:'Code128',text:'CAM-012345'}],'barcode','test').text,'CAM-012345'));
+test('Paddle text retains Vietnamese accents and line order',()=>assert.deepEqual(paddleData([{text:' Tiếng Việt '.normalize('NFD'),score:.98},{text:'rõ nét',score:.91}]),{text:'Tiếng Việt\nrõ nét',confidence:91}));
+test('Paddle numeric text preserves leading zero and decimal',()=>assert.deepEqual(paddleData([{text:'029893.4',score:.95}]),{text:'029893.4',confidence:95}));
+test('separate detected numbers never merge silently',()=>assert.equal(paddleData([{text:'0298',score:.9},{text:'934',score:.9}]).text,'0298\n934'));
+test('Paddle confidence is weakest recognized line',()=>assert.equal(paddleData([{text:'a',score:1},{text:'b',score:.4}]).confidence,40));
+test('Paddle missing or invalid scores fail conservatively',()=>{for(const score of [undefined,NaN,-1,2,Infinity,'0.9'])assert.equal(paddleData([{text:'read',score}]).confidence,0);});
+test('empty Paddle results return zero confidence',()=>{for(const input of [null,[],[null,{text:' '},{text:42}]])assert.deepEqual(paddleData(input),{text:'',confidence:0});});
+test('supports version-3 ZXing symbology and concrete variants',()=>{assert.equal(matchesBarcodeFormat('QRCodeModel2','qr'),true);assert.equal(matchesBarcodeFormat('Code39Ext','barcode'),true);assert.equal(selectBarcodeResult([{format:'QRCodeModel2',symbology:'QRCode',isValid:true,error:'None',text:'QR'}],'qr','test').text,'QR');assert.equal(selectBarcodeResult([{format:'OtherVariant',symbology:'Code39',isValid:true,text:'ABC'}],'barcode','test').text,'ABC');});

@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {join} from 'node:path';
 const root='public/runtime-v2',nm='node_modules';
 async function copy(source,dest){const target=join(root,dest);await mkdir(join(target,'..'),{recursive:true});await copyFile(source,target);}
+await copy(join(nm,'zxing-wasm/dist/reader/zxing_reader.wasm'),'zxing-3.1.7/zxing_reader.wasm');
 const ort=join(nm,'onnxruntime-web/dist');
 for(const file of ['ort.wasm.min.js','ort.webgpu.min.js','ort-wasm-simd-threaded.wasm','ort-wasm-simd-threaded.mjs','ort-wasm-simd-threaded.jsep.wasm','ort-wasm-simd-threaded.jsep.mjs'])await copy(join(ort,file),'ort/'+file);
 const vision=join(nm,'@mediapipe/tasks-vision/wasm');

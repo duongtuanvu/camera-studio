@@ -1,4 +1,4 @@
-# Camera Studio v0.2.1
+# Camera Studio v0.3.0
 
 Mobile-first, local-first camera toolkit. Production: https://camera.linhsumi.io.vn
 
@@ -42,3 +42,6 @@ Run npm test for pixels and line tracking, npm run build for TypeScript and stat
 Select Document for printed text or Digits for a single odometer/meter number. The overlay follows the intrinsic camera frame (including letterboxing). Only that region is captured; high-detail camera resolution is requested for OCR. The engine uses a digit whitelist and single-line segmentation for numeric mode. Low-confidence, malformed and conflicting numeric results are flagged and cannot be saved; the cropped image is available for visual comparison. The confidence score is an estimate, not measured accuracy. Images with glare, tiny digits, curved text or blur can still be misread. No numeric or document accuracy guarantee is made.
 
 `npm run build` now gates Cloudflare deployment on Node regression tests and coverage thresholds for four selected core files, then runs the real Tesseract.js WASM smoke tests against two synthetic clean PNG fixtures using local traineddata. The fixtures are not a representative field benchmark. Browser/device tests and full-app coverage are still pending.
+
+## v0.3.0 upstream engines
+See [UPSTREAM.md](UPSTREAM.md). OCR Auto tries the official PaddleOCR.js PP-OCRv6 Tiny worker, with a Tesseract initialization fallback and explicit engine selector. PaddleOCR remains a beta until browser and mobile tests pass. QR and linear barcode scanning use ZXing-C++ WASM with local versioned binary and compatibility fallback. Build includes three real barcode fixture checks and a blank frame check. The separate browser QA workflow runs PaddleOCR adapter smoke tests; Cloudflare direct Git deployment does not wait for that job. To run locally after installing dependencies and building: `npx playwright install chromium`, then `npm run test:browser`.
