@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {createWorker,PSM} from 'tesseract.js';
 import {characterErrorRate,assessOCR} from '../src/core/ocr-quality.mjs';
+import {selectDocumentPass} from '../src/core/document-ocr.mjs';
 const cases=[
  {fixture:'number',language:'eng',profile:'digits',expected:'029893'},
  {fixture:'vietnamese',language:'vie',profile:'document',expected:'Tiếng Việt rõ nét'}
@@ -21,3 +22,16 @@ for(const c of cases){
  }finally{await worker.terminate();}
 }
 console.log('OCR WASM smoke tests passed (2/2 synthetic clean fixtures).');
+
+const labelWorker=await createWorker('vie+eng',1,{langPath:resolve('public/runtime-v2/ocr/lang'),cacheMethod:'none',gzip:true});
+try{
+ const bytes=Buffer.from(await readFile(resolve('tests/fixtures/energy-label.b64'),'utf8'),'base64');
+ await labelWorker.setParameters({tessedit_pageseg_mode:PSM.SINGLE_BLOCK});
+ const {data:first}=await labelWorker.recognize(bytes);
+ await labelWorker.setParameters({tessedit_pageseg_mode:PSM.SPARSE_TEXT});
+ const {data:second}=await labelWorker.recognize(bytes);
+ const result=selectDocumentPass(first,second);
+ const text=result.text.replace(/\s+/gu,'').toLowerCase();
+ for(const field of ['250l','80w','400kwh'])assert.ok(text.includes(field),'Energy label missing field: '+field+'; OCR: '+result.text);
+ console.log('Energy label WASM regression passed: 3/3 selected numeric fields found.');
+}finally{await labelWorker.terminate();}

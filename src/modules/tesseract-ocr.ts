@@ -1,6 +1,7 @@
 import {createWorker,PSM} from 'tesseract.js';
 import {runtimeURL,throwIfAborted,type Engine,type Options} from '../core/modules';
 import {cropRect,captureSize,improveContrast,recognizeWithReview} from '../core/ocr-quality.mjs';
+import {documentScanSize,grayscaleRGBA,selectDocumentPass} from '../core/document-ocr.mjs';
 
 export async function createTesseractOCR(options:Options):Promise<Engine>{
  const profile=options.ocrProfile??'document';
@@ -32,10 +33,25 @@ export async function createTesseractOCR(options:Options):Promise<Engine>{
    if(closed)throw Error('OCR engine closed');
    throwIfAborted(options.signal);
    const region=cropRect(video.videoWidth,video.videoHeight,profile);
-   const size=captureSize(region.width,region.height,profile);
+   const size=profile==='document'?documentScanSize(region.width,region.height):captureSize(region.width,region.height,profile);
    canvas.width=size.width;canvas.height=size.height;
+   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
    ctx.drawImage(video,region.x,region.y,region.width,region.height,0,0,size.width,size.height);
-   const preview=canvas.toDataURL('image/jpeg',.75);
+   const preview=canvas.toDataURL('image/jpeg',.85);
+   if(profile==='document'){
+    const image=ctx.getImageData(0,0,canvas.width,canvas.height);
+    grayscaleRGBA(image.data);
+    ctx.putImageData(image,0,0);
+    await worker.setParameters({tessedit_pageseg_mode:PSM.SINGLE_BLOCK});
+    const first=await read();
+    // Sparse labels and columns can be missed by the block segmentation pass, even with high confidence.
+    throwIfAborted(options.signal);
+    if(improveContrast(image.data))ctx.putImageData(image,0,0);
+    await worker.setParameters({tessedit_pageseg_mode:PSM.SPARSE_TEXT});
+    const second=await read();
+    const review=selectDocumentPass(first,second);
+    return {text:review.text,confidence:review.confidence,valid:review.valid,warning:review.warning,preview,backend:'Tesseract · 2 passes'};
+   }
    const review=await recognizeWithReview(profile,read,async()=>{
     throwIfAborted(options.signal);
     const image=ctx.getImageData(0,0,canvas.width,canvas.height);

@@ -1,6 +1,6 @@
 {
   "name": "camera-studio",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,7 @@
     "build": "npm run test:coverage && node scripts/prepare-assets.mjs && npm run test:ocr && npm run test:barcode && tsc --noEmit && vite build && node scripts/check-dist.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
-    "test:coverage": "node --experimental-strip-types --experimental-test-coverage --test-coverage-include='src/core/camera.ts' --test-coverage-include='src/core/ocr-quality.mjs' --test-coverage-include='src/core/pixels.mjs' --test-coverage-include='src/core/tracker.mjs' --test-coverage-include='src/core/upstream-results.mjs' --test-coverage-lines=95 --test-coverage-functions=95 --test-coverage-branches=85 --test tests/*.test.mjs",
+    "test:coverage": "node --experimental-strip-types --experimental-test-coverage --test-coverage-include='src/core/camera.ts' --test-coverage-include='src/core/ocr-quality.mjs' --test-coverage-include='src/core/pixels.mjs' --test-coverage-include='src/core/tracker.mjs' --test-coverage-include='src/core/upstream-results.mjs' --test-coverage-include='src/core/document-ocr.mjs' --test-coverage-lines=95 --test-coverage-functions=95 --test-coverage-branches=85 --test tests/*.test.mjs",
     "test:ocr": "node scripts/ocr-smoke.mjs",
     "test:barcode": "node scripts/barcode-smoke.mjs",
     "test:browser": "playwright test"

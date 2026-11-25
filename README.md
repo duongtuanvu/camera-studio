@@ -1,4 +1,4 @@
-# Camera Studio v0.3.0
+# Camera Studio v0.3.1
 
 Mobile-first, local-first camera toolkit. Production: https://camera.linhsumi.io.vn
 
@@ -45,3 +45,6 @@ Select Document for printed text or Digits for a single odometer/meter number. T
 
 ## v0.3.0 upstream engines
 See [UPSTREAM.md](UPSTREAM.md). OCR Auto tries the official PaddleOCR.js PP-OCRv6 Tiny worker, with a Tesseract initialization fallback and explicit engine selector. PaddleOCR remains a beta until browser and mobile tests pass. QR and linear barcode scanning use ZXing-C++ WASM with local versioned binary and compatibility fallback. Build includes three real barcode fixture checks and a blank frame check. The separate browser QA workflow runs PaddleOCR adapter smoke tests; Cloudflare direct Git deployment does not wait for that job. To run locally after installing dependencies and building: `npx playwright install chromium`, then `npm run test:browser`.
+
+## v0.3.1 document and energy label OCR
+Auto now prefers Tesseract with grayscale, bounded upscale and block/sparse-text passes. PaddleOCR is optional and may be used if automatic document engine initialization fails. Review and confirm every OCR result before save/copy. See [QA regression notes](QA-OCR.md). Existing build gate now includes a synthetic colored energy label smoke test.

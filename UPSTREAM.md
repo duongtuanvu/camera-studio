@@ -13,7 +13,7 @@ Use upstream packages instead of reimplementing OCR, barcode decoding, object de
 | Color / motion | Browser Canvas and Web Workers | Existing. No extra dependency needed for simple pixel operations. OpenCV.js can be evaluated for advanced motion segmentation. |
 | Document perspective correction | [doc-scanner](https://github.com/quannqit/doc-scanner) | Candidate only; MIT per upstream README. |
 
-PaddleOCR uses the official SDK's worker and version-matched runtime defaults. Model and runtime downloads may be external; camera pixels are passed to the local SDK, not a cloud OCR API. Auto mode attempts PaddleOCR and falls back to Tesseract on initialization errors. Runtime errors remain visible; the user can switch engines. Neither OCR engine's confidence is a measured field accuracy.
+PaddleOCR uses the official SDK's worker and version-matched runtime defaults. Model and runtime downloads may be external; camera pixels are passed to the local SDK, not a cloud OCR API. As of v0.3.1, Auto mode attempts Tesseract first and falls back to PaddleOCR on document initialization errors. Explicit PaddleOCR remains experimental. Runtime errors remain visible; the user can switch engines. Neither OCR engine's confidence is a measured field accuracy.
 
 ZXing WASM binary is copied from the exact npm release into versioned same-origin runtime assets. The decoder is initialized only when a scan module is opened. QR and linear barcode results are kept separate; no-code frames are not failures.
 

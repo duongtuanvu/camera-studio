@@ -2,6 +2,7 @@ import {PaddleOCR} from '@paddleocr/paddleocr-js';
 import {throwIfAborted,abortError,type Engine,type Options} from '../core/modules';
 import {cropRect,captureSize,improveContrast,recognizeWithReview} from '../core/ocr-quality.mjs';
 import {paddleData} from '../core/upstream-results.mjs';
+import {documentScanSize} from '../core/document-ocr.mjs';
 
 async function initialize(signal:AbortSignal){
  throwIfAborted(signal);
@@ -30,8 +31,9 @@ export async function createPaddleOCR(options:Options):Promise<Engine>{
  }
  return {manual:true,backend,async process(video){
   if(closed)throw Error('PaddleOCR engine closed');throwIfAborted(options.signal);
-  const region=cropRect(video.videoWidth,video.videoHeight,profile),size=captureSize(region.width,region.height,profile);
+  const region=cropRect(video.videoWidth,video.videoHeight,profile),size=profile==='document'?documentScanSize(region.width,region.height):captureSize(region.width,region.height,profile);
   canvas.width=size.width;canvas.height=size.height;
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   ctx.drawImage(video,region.x,region.y,region.width,region.height,0,0,size.width,size.height);
   const preview=canvas.toDataURL('image/jpeg',.75);
   const review=await recognizeWithReview(profile,read,async()=>{throwIfAborted(options.signal);const image=ctx.getImageData(0,0,canvas.width,canvas.height);if(!improveContrast(image.data))return null;ctx.putImageData(image,0,0);return read();});
